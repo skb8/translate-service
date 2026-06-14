@@ -34,6 +34,12 @@ class TranslationEngine {
         return modelManager.isModelDownloaded(model).await()
     }
 
+    /** Returns the BCP-47 language codes of all translation models currently downloaded on-device. */
+    suspend fun getDownloadedLanguages(): List<String> {
+        val models = modelManager.getDownloadedModels(TranslateRemoteModel::class.java).await()
+        return models.map { it.language }.sorted()
+    }
+
     suspend fun downloadModel(mlKitLanguage: String, allowMobileData: Boolean) {
         val model = TranslateRemoteModel.Builder(mlKitLanguage).build()
         val conditionsBuilder = DownloadConditions.Builder()

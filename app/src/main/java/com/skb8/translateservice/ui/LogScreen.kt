@@ -12,6 +12,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,7 +50,10 @@ fun LogScreen(
     logs: List<TranslationLog>,
     availableLanguages: List<LanguageOption>,
     defaultTargetLanguage: String,
-    onTargetLanguageSelected: (String) -> Unit
+    onTargetLanguageSelected: (String) -> Unit,
+    serviceRunning: Boolean,
+    installedModels: List<String>,
+    onRefreshModels: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -65,7 +70,10 @@ fun LogScreen(
         }
     ) { padding ->
         if (logs.isEmpty()) {
-            EmptyState(padding)
+            Column(modifier = Modifier.padding(padding)) {
+                StatusCard(serviceRunning, installedModels, onRefreshModels)
+                EmptyState(Modifier.weight(1f))
+            }
         } else {
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -74,6 +82,9 @@ fun LogScreen(
                     .fillMaxSize()
                     .padding(padding)
             ) {
+                item {
+                    StatusCard(serviceRunning, installedModels, onRefreshModels)
+                }
                 items(logs, key = { it.id }) { log ->
                     LogCard(log)
                 }
@@ -82,12 +93,60 @@ fun LogScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun EmptyState(padding: PaddingValues) {
-    Box(
+private fun StatusCard(
+    serviceRunning: Boolean,
+    installedModels: List<String>,
+    onRefreshModels: () -> Unit
+) {
+    Card(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(padding),
+            .fillMaxWidth()
+            .padding(bottom = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.CheckCircle,
+                    contentDescription = null,
+                    tint = if (serviceRunning) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                )
+                Text(
+                    text = stringResource(if (serviceRunning) R.string.service_running else R.string.service_not_running),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = if (installedModels.isEmpty()) {
+                        stringResource(R.string.ml_models_none)
+                    } else {
+                        stringResource(R.string.ml_models_installed, installedModels.joinToString(", "))
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = onRefreshModels) {
+                    Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.refresh))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyState(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -143,20 +202,22 @@ private fun LogCard(log: TranslationLog) {
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${log.sourceLanguage} → ${log.targetLanguage}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Icon(
-                    imageVector = Icons.Filled.ArrowDownward,
-                    contentDescription = null,
-                    modifier = Modifier.padding(start = 4.dp)
-                )
+            if (log.status != TranslationStatus.INFO) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "${log.sourceLanguage} → ${log.targetLanguage}",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Icon(
+                        imageVector = Icons.Filled.ArrowDownward,
+                        contentDescription = null,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                }
             }
 
             if (log.status == TranslationStatus.OK) {
@@ -165,7 +226,7 @@ private fun LogCard(log: TranslationLog) {
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Medium
                 )
-            } else if (log.errorMessage != null) {
+            } else if (log.status != TranslationStatus.INFO && log.errorMessage != null) {
                 Text(
                     text = log.errorMessage,
                     style = MaterialTheme.typography.bodyLarge,
@@ -183,6 +244,7 @@ private fun StatusChip(status: TranslationStatus) {
         TranslationStatus.OK -> R.string.status_ok to MaterialTheme.colorScheme.primaryContainer
         TranslationStatus.PENDING_MODEL -> R.string.status_pending_model to MaterialTheme.colorScheme.secondaryContainer
         TranslationStatus.ERROR -> R.string.status_error to MaterialTheme.colorScheme.errorContainer
+        TranslationStatus.INFO -> R.string.status_info to MaterialTheme.colorScheme.secondaryContainer
     }
     SuggestionChip(
         onClick = {},

@@ -52,6 +52,31 @@ class TranslationBinderService : Service() {
         logDao = AppDatabase.get(applicationContext).logDao()
         createNotificationChannels()
         startForeground(SERVICE_NOTIFICATION_ID, buildServiceNotification())
+        logStartup()
+    }
+
+    private fun logStartup() {
+        scope.launch {
+            logAndNotify(
+                callerPackage = packageName, callerLabel = "System",
+                sourceLanguage = "", targetLanguage = "",
+                sourceText = "Translation service started", translatedText = "",
+                status = TranslationStatus.INFO, errorMessage = null
+            )
+
+            val downloaded = engine.getDownloadedLanguages()
+            val modelsText = if (downloaded.isEmpty()) {
+                "No ML Kit translation models installed yet"
+            } else {
+                "Installed ML Kit models: ${downloaded.joinToString(", ")}"
+            }
+            logAndNotify(
+                callerPackage = packageName, callerLabel = "System",
+                sourceLanguage = "", targetLanguage = "",
+                sourceText = modelsText, translatedText = "",
+                status = TranslationStatus.INFO, errorMessage = null
+            )
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

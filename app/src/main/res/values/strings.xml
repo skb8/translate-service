@@ -15,7 +15,13 @@
     <string name="status_ok">OK</string>
     <string name="status_pending_model">Model needed</string>
     <string name="status_error">Error</string>
+    <string name="status_info">Info</string>
     <string name="download_dialog_title">Download language model?</string>
     <string name="download_dialog_allow">Allow over mobile data</string>
     <string name="download_dialog_deny">Cancel</string>
+    <string name="service_running">Сервис запущен</string>
+    <string name="service_not_running">Сервис не запущен</string>
+    <string name="ml_models_none">ML Kit: модели не установлены</string>
+    <string name="ml_models_installed">ML Kit модели: %1$s</string>
+    <string name="refresh">Обновить</string>
 </resources>

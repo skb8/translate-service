@@ -24,17 +24,23 @@ class MainActivity : ComponentActivity() {
         // can bind to it even when this activity is not visible.
         val serviceIntent = Intent(this, TranslationBinderService::class.java)
         ContextCompat.startForegroundService(this, serviceIntent)
+        viewModel.setServiceRunning(true)
 
         setContent {
             TranslateServiceTheme {
                 val logs by viewModel.logs.collectAsState()
                 val defaultTarget by viewModel.defaultTargetLanguage.collectAsState()
+                val serviceRunning by viewModel.serviceRunning.collectAsState()
+                val installedModels by viewModel.installedModels.collectAsState()
 
                 LogScreen(
                     logs = logs,
                     availableLanguages = viewModel.availableLanguages,
                     defaultTargetLanguage = defaultTarget,
-                    onTargetLanguageSelected = viewModel::setDefaultTargetLanguage
+                    onTargetLanguageSelected = viewModel::setDefaultTargetLanguage,
+                    serviceRunning = serviceRunning,
+                    installedModels = installedModels,
+                    onRefreshModels = viewModel::refreshInstalledModels
                 )
             }
         }

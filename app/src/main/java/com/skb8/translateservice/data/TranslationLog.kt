@@ -6,7 +6,8 @@ import androidx.room.PrimaryKey
 enum class TranslationStatus {
     OK,
     PENDING_MODEL,
-    ERROR
+    ERROR,
+    INFO
 }
 
 @Entity(tableName = "translation_log")

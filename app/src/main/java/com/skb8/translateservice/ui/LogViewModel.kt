@@ -7,8 +7,11 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.skb8.translateservice.data.AppDatabase
 import com.skb8.translateservice.data.SettingsRepository
 import com.skb8.translateservice.data.TranslationLog
+import com.skb8.translateservice.service.TranslationEngine
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -30,9 +33,36 @@ class LogViewModel(application: Application) : AndroidViewModel(application) {
         .map { code -> LanguageOption(code, Locale(code).displayName.replaceFirstChar { it.uppercase() }) }
         .sortedBy { it.displayName }
 
+    private val engine = TranslationEngine()
+
+    private val _installedModels = MutableStateFlow<List<String>>(emptyList())
+    val installedModels: StateFlow<List<String>> = _installedModels.asStateFlow()
+
+    private val _serviceRunning = MutableStateFlow(false)
+    val serviceRunning: StateFlow<Boolean> = _serviceRunning.asStateFlow()
+
+    init {
+        refreshInstalledModels()
+    }
+
+    fun setServiceRunning(running: Boolean) {
+        _serviceRunning.value = running
+    }
+
+    fun refreshInstalledModels() {
+        viewModelScope.launch {
+            _installedModels.value = engine.getDownloadedLanguages()
+        }
+    }
+
     fun setDefaultTargetLanguage(code: String) {
         viewModelScope.launch {
             settings.setDefaultTargetLanguage(code)
         }
+    }
+
+    override fun onCleared() {
+        engine.close()
+        super.onCleared()
     }
 }
