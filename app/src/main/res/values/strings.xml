@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">Translate Service</string>
+    <string name="notification_channel_name">Translation Service</string>
+    <string name="notification_channel_desc">Keeps the background translation service running</string>
+    <string name="notification_title">Translation service running</string>
+    <string name="notification_text">Ready to translate requests from other apps</string>
+    <string name="notification_download_channel_name">Model downloads</string>
+    <string name="notification_download_title">Download translation model?</string>
+    <string name="notification_download_text">App \"%1$s\" needs the %2$s language model (~30 MB). You are not on Wi-Fi.</string>
+    <string name="action_allow">Allow</string>
+    <string name="action_deny">Deny</string>
+    <string name="default_target_language">Default translation language</string>
+    <string name="empty_log_title">No translations yet</string>
+    <string name="empty_log_subtitle">Requests from other apps will appear here</string>
+    <string name="status_ok">OK</string>
+    <string name="status_pending_model">Model needed</string>
+    <string name="status_error">Error</string>
+    <string name="download_dialog_title">Download language model?</string>
+    <string name="download_dialog_allow">Allow over mobile data</string>
+    <string name="download_dialog_deny">Cancel</string>
+</resources>
